@@ -62,58 +62,125 @@ Natural language spending inputs (e.g., *"chai 20, auto to campus 60"*) are pars
 To replicate the backend tables in your own Supabase project, execute the following in your Supabase SQL Editor:
 
 ```sql
--- Enable UUID generation
+-- Ledger talks to PostgREST directly, so these are exactly the columns the app
+-- reads and writes. Run once in the Supabase SQL editor.
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. Transactions
-CREATE TABLE transactions (
+-- 1. Transactions (money out and money in)
+CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL DEFAULT 'debit' CHECK (type IN ('debit','credit')),
     amount NUMERIC(12, 2) NOT NULL,
-    category TEXT NOT NULL,
-    merchant TEXT,
+    category TEXT,
+    merchant_raw TEXT,
+    merchant_display TEXT,
     note TEXT,
-    date DATE DEFAULT CURRENT_DATE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    txn_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sms_raw TEXT,
+    is_reimbursable BOOLEAN NOT NULL DEFAULT FALSE,
+    balance_after NUMERIC(12, 2),
+    reimbursed_txn_id UUID
 );
+CREATE INDEX IF NOT EXISTS transactions_date_idx
+    ON transactions (txn_date DESC, created_at DESC);
+CREATE INDEX IF NOT EXISTS transactions_type_date_idx
+    ON transactions (type, txn_date DESC, created_at DESC);
 
--- 2. Investments & Holdings
-CREATE TABLE investments (
+-- 2. Investments & holdings
+CREATE TABLE IF NOT EXISTS investments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    asset_name TEXT NOT NULL,
-    asset_type TEXT NOT NULL, -- 'Equity', 'Mutual Fund', 'Gold', etc.
-    invested_amount NUMERIC(12, 2) NOT NULL,
-    current_value NUMERIC(12, 2) NOT NULL,
-    is_estimate BOOLEAN DEFAULT FALSE,
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Debts & Reimbursements
-CREATE TABLE people (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    phone TEXT,
-    balance NUMERIC(12, 2) DEFAULT 0.00
+    type TEXT NOT NULL DEFAULT 'mutual_fund',   -- mutual_fund | stock | crypto | other
+    source TEXT NOT NULL DEFAULT 'manual',      -- groww | manual
+    units NUMERIC(18, 4) NOT NULL DEFAULT 0,
+    avg_buy_price NUMERIC(12, 4),
+    invested_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    current_value NUMERIC(12, 2),
+    ticker TEXT,
+    mode TEXT NOT NULL DEFAULT 'active',        -- active | long_term_hold
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE debts (
+-- 3. Debts & reimbursements
+CREATE TABLE IF NOT EXISTS people (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    upi_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS debts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     person_id UUID REFERENCES people(id) ON DELETE CASCADE,
     amount NUMERIC(12, 2) NOT NULL,
-    note TEXT,
-    is_settled BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    amount_settled NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    reason TEXT,
+    debt_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','settled')),
+    settled_date TIMESTAMPTZ,
+    linked_txn_id UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Enable Row-Level Security
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE investments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE people ENABLE ROW LEVEL SECURITY;
-ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
+-- Household spending your parents pay you back for. `txn_id` links a pending
+-- reimbursement to the expense it came from; `settled_txn_id` links the credit
+-- that paid it.
+CREATE TABLE IF NOT EXISTS household_reimbursements (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    txn_id UUID REFERENCES transactions(id) ON DELETE CASCADE,
+    amount NUMERIC(12, 2) NOT NULL,
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','settled')),
+    settled_date TIMESTAMPTZ,
+    settled_txn_id UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Recurring income, used to keep salary/stipend credits out of debt matching.
+CREATE TABLE IF NOT EXISTS income_sources (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    expected_amount NUMERIC(12, 2),
+    frequency TEXT DEFAULT 'monthly',           -- monthly | weekly | one_time
+    credit_keyword TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Merchant → category memory ("Remember this merchant" in the add sheet).
+CREATE TABLE IF NOT EXISTS merchant_mappings (
+    raw_name TEXT PRIMARY KEY,
+    display_name TEXT,
+    category TEXT
+);
 ```
+
+### A note on RLS
+
+This build has **no login flow**: it sends your Supabase anon key straight from the
+browser. That means `auth.uid()`-based policies will block every request, while a
+permissive `anon` policy would let anyone holding the key read the data.
+
+Practical setup:
+
+- Use a **dedicated Supabase project per person**, keep the anon key private, and
+  don't publish a build that has it baked in.
+- If you keep RLS enabled, add permissive policies for the `anon` role (otherwise
+  the app sees empty tables):
+
+```sql
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+-- …repeat for investments, people, debts, household_reimbursements,
+--  income_sources and merchant_mappings, then:
+CREATE POLICY ledger_all ON transactions FOR ALL TO anon USING (true) WITH CHECK (true);
+```
+
+- For a multi-user deployment, add Supabase Auth, a `user_id` column on every
+  table, and `USING (auth.uid() = user_id)` policies instead.
+
 
 ---
 
@@ -123,7 +190,7 @@ ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Kahaan83/personal-expense-dash.git
+   git clone https://github.com/NamyaaParmar/personal-expense-dash.git
    cd personal-expense-dash
    ```
 
@@ -149,8 +216,8 @@ ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
 
 ## 🔒 Security Best Practices
 
-- **Zero-Backend Storage of AI Keys:** Your Gemini API Key resides strictly inside your browser's encrypted `localStorage` sandbox.
-- **Row-Level Security (RLS):** All database operations query Supabase directly through authenticated RLS policies, ensuring each user's records are strictly isolated.
+- **Zero-Backend Storage of AI Keys:** Your Gemini API Key resides strictly inside your browser's `localStorage`, never sent to any server except Google's API.
+- **Database Access:** All requests go straight from the browser to Supabase with the anon key you enter in Settings. Keep that key private, use a project that is yours alone, and see [A note on RLS](#a-note-on-rls) before assuming rows are isolated per user — this build ships without a login flow.
 - **Data Privacy:** Financial statements and personal transactions are never committed to version control (see `.gitignore`).
 
 ---
