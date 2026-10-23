@@ -2220,9 +2220,9 @@ async function loadHome() {
   const [start, end] = monthRangeISO(view.year, view.month);
 
   const [txns, debts, settledReimb] = await Promise.all([
-    sbGet('transactions', `txn_date=gte.${start}&txn_date=lt.${end}&order=txn_date.desc&limit=5000`),
+    sbGet('transactions', `txn_date=gte.${start}&txn_date=lt.${end}&order=txn_date.desc,created_at.desc&limit=5000`),
     sbGet('debts', 'status=neq.settled&select=amount,amount_settled'),
-    sbGet('household_reimbursements', 'status=eq.settled&select=amount,txn_id,created_at&limit=5000')
+    sbGet('household_reimbursements', 'status=eq.settled&select=amount,txn_id,settled_date,created_at&limit=5000')
   ]);
 
   if (token !== homeToken) return;
@@ -2232,7 +2232,12 @@ async function loadHome() {
   cache.reimbByTxn = {}; let manual = 0, linked = 0;
   (settledReimb || []).forEach(x => {
     if (x.txn_id) cache.reimbByTxn[String(x.txn_id)] = (cache.reimbByTxn[String(x.txn_id)] || 0) + Number(x.amount);
-    else { const d = new Date(x.created_at); if (d.getFullYear() === view.year && d.getMonth() === view.month) manual += Number(x.amount); }
+    else {
+      // Credit money back in the month it was actually settled, not the month
+      // the pending reimbursement was created.
+      const when = parseDate(x.settled_date || x.created_at);
+      if (when.getFullYear() === view.year && when.getMonth() === view.month) manual += Number(x.amount);
+    }
   });
 
   cache.month = normTxns(txns).map(t => {
@@ -2345,7 +2350,7 @@ async function loadMoreMonth() {
   const [start, end] = monthRangeISO(view.year, view.month);
   const offset = (cache.monthPage || 1) * EXP_PAGE_SIZE;
   const more = normTxns(await sbGet('transactions',
-    `txn_date=gte.${start}&txn_date=lt.${end}&order=txn_date.desc&limit=${EXP_PAGE_SIZE}&offset=${offset}`));
+    `txn_date=gte.${start}&txn_date=lt.${end}&order=txn_date.desc,created_at.desc&limit=${EXP_PAGE_SIZE}&offset=${offset}`));
   if (!more) return;
   const seen = new Set(cache.month.map(t => String(t.id)));
   cache.month = [...cache.month, ...more.filter(t => !seen.has(String(t.id)))];
@@ -2605,7 +2610,7 @@ async function loadExpenses() {
   $('expense-rows').innerHTML = skeletonRows(6);
 
   const [start, end] = monthRangeISO(view.year, view.month);
-  const q = `txn_date=gte.${start}&txn_date=lt.${end}&type=eq.debit&order=txn_date.desc&limit=${EXP_PAGE_SIZE}`;
+  const q = `txn_date=gte.${start}&txn_date=lt.${end}&type=eq.debit&order=txn_date.desc,created_at.desc&limit=${EXP_PAGE_SIZE}`;
   const txns = normTxns(await sbGet('transactions', q));
   if (token !== expToken) return;
   if (!txns) { $('expense-rows').innerHTML = errState('Could not load expenses.'); return; }
@@ -2649,7 +2654,7 @@ async function loadMoreExpenses() {
   const [start, end] = monthRangeISO(view.year, view.month);
   const offset = (cache.expPage || 1) * EXP_PAGE_SIZE;
   const more = normTxns(await sbGet('transactions',
-    `txn_date=gte.${start}&txn_date=lt.${end}&type=eq.debit&order=txn_date.desc&limit=${EXP_PAGE_SIZE}&offset=${offset}`));
+    `txn_date=gte.${start}&txn_date=lt.${end}&type=eq.debit&order=txn_date.desc,created_at.desc&limit=${EXP_PAGE_SIZE}&offset=${offset}`));
   if (!more) return;
   const seen = new Set(cache.expenses.map(t => String(t.id)));
   cache.expenses = [...cache.expenses, ...more.filter(t => !seen.has(String(t.id)))];
@@ -2668,7 +2673,7 @@ async function loadPortfolio() {
   $('holding-rows').innerHTML = skeletonRows(3);
   $('btn-save-prices').style.display = 'none';
 
-  const invs = await sbGet('investments', `order=invested_amount.desc&limit=${INV_PAGE_SIZE}`);
+  const invs = await sbGet('investments', `order=invested_amount.desc,created_at.desc&limit=${INV_PAGE_SIZE}`);
   if (!invs) { $('holding-rows').innerHTML = errState('Could not load your portfolio.'); return; }
   cache.holdings = invs;
   cache.invHasMore = invs.length >= INV_PAGE_SIZE;
@@ -2712,8 +2717,9 @@ function renderPortfolioStats() {
     ? `<span class="${best.p >= 0 ? 'pos' : 'neg'}">${best.p >= 0 ? '+' : ''}${best.p.toFixed(1)}%</span>` : '—';
 }
 
-let pfOpenGroup = localStorage.getItem('pf_open_group') || 'mutual_fund';
-let ltOpenGroup = localStorage.getItem('lt_open_group') || 'mutual_fund';
+// `??` (not `||`) so a deliberately collapsed group ('') survives a reload.
+let pfOpenGroup = localStorage.getItem('pf_open_group') ?? 'mutual_fund';
+let ltOpenGroup = localStorage.getItem('lt_open_group') ?? 'mutual_fund';
 
 function togglePfGroup(group, containerId) {
   haptic(4);
@@ -2846,7 +2852,7 @@ async function saveEstimates() {
 
 async function loadMoreInvestments() {
   const offset = (cache.invPage || 1) * INV_PAGE_SIZE;
-  const more = await sbGet('investments', `order=invested_amount.desc&limit=${INV_PAGE_SIZE}&offset=${offset}`);
+  const more = await sbGet('investments', `order=invested_amount.desc,created_at.desc&limit=${INV_PAGE_SIZE}&offset=${offset}`);
   if (!more) return;
   const seen = new Set(cache.holdings.map(i => String(i.id)));
   cache.holdings = [...cache.holdings, ...more.filter(i => !seen.has(String(i.id)))];
@@ -2944,7 +2950,7 @@ async function loadPeople() {
   const now = new Date();
   const previousMonthStart = ymd(new Date(now.getFullYear(), now.getMonth() - 1, 1));
   const [debts, household, recentCredits, incomeSources] = await Promise.all([
-    sbGet('debts', 'status=neq.settled&select=id,amount,amount_settled,reason,debt_date,people(name)&order=debt_date.desc'),
+    sbGet('debts', 'status=neq.settled&select=id,amount,amount_settled,reason,debt_date,people(name)&order=debt_date.desc,created_at.desc'),
     sbGet('household_reimbursements', 'status=eq.pending&order=created_at.desc'),
     sbGet('transactions', `type=eq.credit&txn_date=gte.${previousMonthStart}&order=txn_date.desc&limit=20`),
     sbGet('income_sources', 'is_active=eq.true&order=name.asc')
@@ -3181,14 +3187,28 @@ function deleteExpense() {
 }
 
 async function hardDeleteExpense(id) {
-  const linked = await sbGet('household_reimbursements', `txn_id=eq.${encodeURIComponent(id)}&limit=20`);
-  if (linked === null) return false;
-  for (const x of linked) { if (await sbDelete('household_reimbursements', x.id) === null) return false; }
   const eid = encodeURIComponent(id);
-  const detach = (path, body) => sb(path, { method: 'PATCH', body, prefer: 'return=minimal' });
-  if (await detach(`debts?linked_txn_id=eq.${eid}`, { linked_txn_id: null }) === null) return false;
-  if (await detach(`income?txn_id=eq.${eid}`, { txn_id: null }) === null) return false;
-  if (await detach(`transactions?reimbursed_txn_id=eq.${eid}`, { reimbursed_txn_id: null }) === null) return false;
+  const detach = (path, body) => sb(path, { method: 'PATCH', body, prefer: 'return=minimal', quiet: true });
+
+  // Drop any pending reimbursements pointing at this transaction first, so a
+  // foreign key can't block the delete. Failures here are not fatal either.
+  const linked = await sbGet('household_reimbursements', `txn_id=eq.${eid}&limit=20`);
+  if (Array.isArray(linked)) {
+    for (const x of linked) {
+      await sb(`household_reimbursements?id=eq.${encodeURIComponent(x.id)}`,
+        { method: 'DELETE', prefer: 'return=minimal', quiet: true });
+    }
+  }
+
+  // Optional cross-links left over from earlier schema versions. Not every
+  // project has these tables/columns, so a failure must never block the
+  // actual delete — otherwise nothing can ever be deleted.
+  await Promise.all([
+    detach(`debts?linked_txn_id=eq.${eid}`, { linked_txn_id: null }),
+    detach(`income?txn_id=eq.${eid}`, { txn_id: null }),
+    detach(`transactions?reimbursed_txn_id=eq.${eid}`, { reimbursed_txn_id: null })
+  ]);
+
   return (await sbDelete('transactions', id)) !== null;
 }
 function rerenderTxns() {
@@ -3411,6 +3431,10 @@ async function saveReceived() {
     closeModal('m-received'); toast('Updated'); loadHome(); loadPeople(); return;
   }
   const rid = $('rcv-reimb').value;
+  if (rid && !navigator.onLine) {
+    toast('Reconnect to log a linked reimbursement', true);
+    return;
+  }
   const rrow = { type: 'credit', amount, merchant_raw: from, merchant_display: from,
     category: rid ? 'Reimbursement' : $('rcv-category').value, txn_date: dateOnly(date), sms_raw: 'manual_entry',
     ...(note ? { note } : {}) };
@@ -3553,7 +3577,32 @@ function clearSupabase() {
   SB_URL = ''; SB_KEY = '';
   localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key');
   $('sb-url').value = ''; $('sb-key').value = '';
+  // Don't leave personal figures lying around after the credentials are gone.
+  cache.month = []; cache.expenses = []; cache.holdings = []; cache.recentCredits = [];
+  cache.reimbByTxn = {}; cache.settledReimb = 0; cache.linkedReimb = 0;
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('insight_')) localStorage.removeItem(k);
+    }
+  } catch {}
+  showDisconnectedState();
+  switchTab('settings');
   syncStatus(); toast('Supabase credentials removed');
+}
+
+function showDisconnectedState() {
+  _heroDefaultSpent = '0';
+  $('hero-spent').textContent = '0';
+  $('stat-in').textContent = '₹0';
+  $('stat-net').textContent = '₹0';
+  $('stat-owed').textContent = '₹—';
+  $('hero-delta').innerHTML = '&nbsp;';
+  $('gap-hint').innerHTML = '';
+  $('ai-card').style.display = 'none';
+  $('recent-rows').innerHTML =
+    `<div class="empty"><div class="e"><span class="material-symbols-rounded">cloud_off</span></div><div class="t">Connect Supabase in Settings to view transactions.</div></div>`;
+  $('breakdown').innerHTML = `<div class="empty"><div class="t">Add a few expenses to see the split.</div></div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3688,8 +3737,7 @@ syncStatus();
 if (SB_URL && SB_KEY) {
   loadHome();
 } else {
-  $('recent-rows').innerHTML =
-    `<div class="empty"><div class="e"><span class="material-symbols-rounded">cloud_off</span></div><div class="t">Connect Supabase in Settings to view transactions.</div></div>`;
+  showDisconnectedState();
   switchTab('settings');
 }
 
