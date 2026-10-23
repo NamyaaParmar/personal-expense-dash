@@ -207,10 +207,32 @@ CREATE POLICY ledger_all ON transactions FOR ALL TO anon USING (true) WITH CHECK
 
 ### Cloud Configuration
 
-1. In the app settings drawer, configure your:
-   - **Supabase URL & Anon Key**
+1. Create a project at [supabase.com](https://supabase.com), then push the bundled schema:
+   ```bash
+   npx supabase link --project-ref <project-ref>
+   npx supabase db push
+   ```
+2. Deploy the SMS webhook and give it a shared secret:
+   ```bash
+   npx supabase functions deploy parse-sms
+   npx supabase secrets set WEBHOOK_SECRET=<long-random-string>
+   ```
+3. In the app settings drawer, configure your:
+   - **Supabase URL & Anon Key** (Project Settings → API)
    - **Gemini API Key** *(stored locally in `localStorage`, never sent to any server)*.
-2. Ensure Row Level Security (RLS) is enabled on your Supabase tables to protect personal financial data.
+
+### SMS Relay (Android)
+
+`sms_relay.apk` forwards bank SMS to the deployed `parse-sms` function. Install it,
+then enter:
+
+- **Supabase Function URL** — `https://<project-ref>.supabase.co/functions/v1/parse-sms`
+- **Webhook Secret** — the same `WEBHOOK_SECRET` value
+
+The relay accepts HDFC, IDFC, ICICI, Axis, Kotak, SBI, Yes Bank and PNB sender IDs.
+`parse-sms` understands HDFC UPI alerts such as `Sent Rs.366.59 … To <merchant> … On 23/10/26`
+and `Rs.700.00 credited … from VPA …`, stores the transaction, and skips duplicate
+SMS bodies. The Android source is the separate `SMSRelay` project.
 
 ---
 
