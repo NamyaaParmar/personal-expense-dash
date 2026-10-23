@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="theme-color" content="#060A08" />
+<meta name="theme-color" content="#0A0609" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Ledger" />
@@ -24,16 +24,16 @@
    PIXEL 10 · MATERIAL 3 EXPRESSIVE OLED TOKENS
    ══════════════════════════════════════════════════════════════ */
 :root {
-  --md-sys-color-primary:                  #6FF2B3;
-  --md-sys-color-primary-bright:           #98FFD0;
-  --md-sys-color-on-primary:               #003820;
-  --md-sys-color-primary-container:        #0B5434;
-  --md-sys-color-on-primary-container:     #B8F9D6;
+  --md-sys-color-primary:                  #FF8FC7;
+  --md-sys-color-primary-bright:           #FFB3DA;
+  --md-sys-color-on-primary:               #3A0024;
+  --md-sys-color-primary-container:        #7A1046;
+  --md-sys-color-on-primary-container:     #FFD9EA;
 
-  --md-sys-color-secondary:                #B5CCBE;
-  --md-sys-color-on-secondary:             #1F352A;
-  --md-sys-color-secondary-container:      rgba(111, 242, 179, 0.15);
-  --md-sys-color-on-secondary-container:   #D4F2E1;
+  --md-sys-color-secondary:                #D8BCC8;
+  --md-sys-color-on-secondary:             #3B2831;
+  --md-sys-color-secondary-container:      rgba(255, 143, 199, 0.16);
+  --md-sys-color-on-secondary-container:   #FFD9EA;
 
   --md-sys-color-tertiary:                 #84D8F0;
   --md-sys-color-on-tertiary:              #003543;
@@ -41,17 +41,17 @@
   --md-sys-color-on-tertiary-container:    #C5EFFF;
 
   /* True Actua OLED dark surfaces */
-  --md-sys-color-surface:                  #060A08;
-  --md-sys-color-surface-dim:              #040705;
-  --md-sys-color-surface-container-lowest: #090F0C;
-  --md-sys-color-surface-container-low:    #0D1511;
-  --md-sys-color-surface-container:        #111C17;
-  --md-sys-color-surface-container-high:   #17251E;
-  --md-sys-color-surface-container-highest:#1E3027;
+  --md-sys-color-surface:                  #0A0609;
+  --md-sys-color-surface-dim:              #070405;
+  --md-sys-color-surface-container-lowest: #0E080C;
+  --md-sys-color-surface-container-low:    #140C11;
+  --md-sys-color-surface-container:        #1A1016;
+  --md-sys-color-surface-container-high:   #22151D;
+  --md-sys-color-surface-container-highest:#2C1B25;
 
-  --md-sys-color-on-surface:               #ECF4EF;
-  --md-sys-color-on-surface-variant:       #9EB5AA;
-  --md-sys-color-outline:                  #698075;
+  --md-sys-color-on-surface:               #F4ECF0;
+  --md-sys-color-on-surface-variant:       #B3A1AB;
+  --md-sys-color-outline:                  #7E6B75;
   --md-sys-color-outline-variant:          rgba(255, 255, 255, 0.07);
 
   --md-sys-color-credit:                   #6FF2B3;
@@ -74,7 +74,7 @@
   --cat-Food:#FF8A65; --cat-Transport:#4DD0E1; --cat-Shopping:#CE93D8;
   --cat-Groceries:#81C784; --cat-Household:#FFD54F; --cat-Health:#F48FB1;
   --cat-Entertainment:#4FC3F7; --cat-Subscriptions:#B39DDB; --cat-Transfer:#90A4AE;
-  --cat-Investment:#6FF2B3; --cat-Income:#69F0AE; --cat-Vices:#BCAAA4;
+  --cat-Investment:#FF8FC7; --cat-Income:#69F0AE; --cat-Vices:#BCAAA4;
   --cat-Navratri:#FFA726; --cat-Other:#78909C;
 
   --safe-top: env(safe-area-inset-top, 0px);
@@ -86,7 +86,7 @@
   --spring-soft: cubic-bezier(0.22, 1.15, 0.36, 1);
 
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-bright: rgba(111, 242, 179, 0.25);
+  --glass-border-bright: rgba(255, 143, 199, 0.25);
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --card-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.65);
 }
@@ -131,8 +131,8 @@ input, select, textarea { font: inherit; color: inherit; }
   margin: 0 auto;
   position: relative;
   background:
-    radial-gradient(85% 32% at 15% -4%, rgba(111, 242, 179, 0.14) 0%, transparent 70%),
-    radial-gradient(70% 28% at 92% 4%, rgba(132, 216, 240, 0.09) 0%, transparent 75%),
+    radial-gradient(85% 32% at 15% -4%, rgba(255, 143, 199, 0.14) 0%, transparent 70%),
+    radial-gradient(70% 28% at 92% 4%, rgba(196, 160, 255, 0.09) 0%, transparent 75%),
     var(--md-sys-color-surface);
   overflow: hidden;
 }
@@ -226,9 +226,9 @@ input, select, textarea { font: inherit; color: inherit; }
 .ribbon {
   margin: 8px 16px 16px;
   background:
-    radial-gradient(120% 100% at 100% 0%, rgba(111, 242, 179, 0.11) 0%, transparent 65%),
-    linear-gradient(165deg, #16241D 0%, #0C1410 100%);
-  border: 1px solid rgba(111, 242, 179, 0.16);
+    radial-gradient(120% 100% at 100% 0%, rgba(255, 143, 199, 0.11) 0%, transparent 65%),
+    linear-gradient(165deg, #22151D 0%, #0E080C 100%);
+  border: 1px solid rgba(255, 143, 199, 0.16);
   border-radius: var(--r-xl);
   overflow: hidden;
   box-shadow: var(--card-shadow), var(--glass-sheen);
@@ -238,7 +238,7 @@ input, select, textarea { font: inherit; color: inherit; }
   content: '';
   position: absolute;
   top: 0; left: 10%; right: 10%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(111, 242, 179, 0.45), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 143, 199, 0.45), transparent);
   pointer-events: none;
 }
 .ribbon-head {
@@ -308,7 +308,7 @@ input, select, textarea { font: inherit; color: inherit; }
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 3px 8px rgba(111, 242, 179, 0.38));
+  filter: drop-shadow(0 3px 8px rgba(255, 143, 199, 0.38));
 }
 .ribbon-chart path.cum-fill {
   fill: url(#spendGradient);
@@ -316,7 +316,7 @@ input, select, textarea { font: inherit; color: inherit; }
   stroke: none;
 }
 .ribbon-chart .bar {
-  fill: rgba(111, 242, 179, 0.22);
+  fill: rgba(255, 143, 199, 0.22);
   transition: fill 0.15s;
 }
 .ribbon-chart .bar.active {
@@ -415,9 +415,9 @@ input, select, textarea { font: inherit; color: inherit; }
   padding: 16px 18px;
   border-radius: var(--r-lg);
   background:
-    radial-gradient(90% 120% at 100% 0%, rgba(132, 216, 240, 0.12) 0%, transparent 70%),
-    linear-gradient(135deg, rgba(111, 242, 179, 0.11), rgba(17, 28, 23, 0.92));
-  border: 1px solid rgba(111, 242, 179, 0.22);
+    radial-gradient(90% 120% at 100% 0%, rgba(196, 160, 255, 0.12) 0%, transparent 70%),
+    linear-gradient(135deg, rgba(255, 143, 199, 0.11), rgba(26, 16, 22, 0.92));
+  border: 1px solid rgba(255, 143, 199, 0.22);
   box-shadow: var(--card-shadow), var(--glass-sheen);
   position: relative;
   overflow: hidden;
@@ -478,7 +478,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .quick-input-wrap:focus-within {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-surface-container-highest);
-  box-shadow: 0 0 0 3px rgba(111, 242, 179, 0.14);
+  box-shadow: 0 0 0 3px rgba(255, 143, 199, 0.14);
 }
 .quick-input-wrap .ai-icon {
   color: var(--md-sys-color-primary);
@@ -507,7 +507,7 @@ input, select, textarea { font: inherit; color: inherit; }
   align-items: center;
   gap: 4px;
   transition: transform 0.16s var(--spring-fast), opacity 0.2s;
-  box-shadow: 0 4px 16px -4px rgba(111, 242, 179, 0.45);
+  box-shadow: 0 4px 16px -4px rgba(255, 143, 199, 0.45);
 }
 .quick-btn:active { transform: scale(0.93); }
 .quick-btn:disabled { opacity: 0.45; box-shadow: none; }
@@ -629,8 +629,8 @@ input, select, textarea { font: inherit; color: inherit; }
   100% { background-position:  400px 0; }
 }
 .skel {
-  --skel-base: #15221C;
-  --skel-shine: #20332A;
+  --skel-base: #1A1016;
+  --skel-shine: #2C1B25;
   background: linear-gradient(90deg, var(--skel-base) 25%, var(--skel-shine) 50%, var(--skel-base) 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s ease-in-out infinite;
@@ -705,7 +705,7 @@ input, select, textarea { font: inherit; color: inherit; }
   top: 0;
   z-index: 8;
   padding: 10px 16px 12px;
-  background: rgba(6, 10, 8, 0.84);
+  background: rgba(10, 6, 9, 0.84);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -725,7 +725,7 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 .search input:focus {
   border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 3px rgba(111, 242, 179, 0.14);
+  box-shadow: 0 0 0 3px rgba(255, 143, 199, 0.14);
   outline: none;
 }
 .search .ic {
@@ -773,7 +773,7 @@ input, select, textarea { font: inherit; color: inherit; }
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
   border-color: var(--md-sys-color-primary);
-  box-shadow: 0 4px 14px -4px rgba(111, 242, 179, 0.45);
+  box-shadow: 0 4px 14px -4px rgba(255, 143, 199, 0.45);
 }
 .uncat-nudge {
   display: flex;
@@ -961,16 +961,16 @@ input, select, textarea { font: inherit; color: inherit; }
   padding: 18px 20px;
   border-radius: var(--r-lg);
   background:
-    radial-gradient(100% 120% at 100% 0%, rgba(111, 242, 179, 0.18), transparent 70%),
-    var(--md-sys-color-credit-container);
-  border: 1px solid rgba(111, 242, 179, 0.3);
+    radial-gradient(100% 120% at 100% 0%, rgba(255, 143, 199, 0.22), transparent 70%),
+    var(--md-sys-color-primary-container);
+  border: 1px solid rgba(255, 143, 199, 0.3);
   box-shadow: var(--glass-sheen);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.owed-bar .k { font-size: 13.5px; font-weight: 700; color: var(--md-sys-color-on-credit-container); }
-.owed-bar .v { font-size: 22px; font-weight: 700; color: var(--md-sys-color-on-credit-container); }
+.owed-bar .k { font-size: 13.5px; font-weight: 700; color: var(--md-sys-color-on-primary-container); }
+.owed-bar .v { font-size: 22px; font-weight: 700; color: var(--md-sys-color-on-primary-container); }
 .avatar {
   width: 44px; height: 44px;
   border-radius: 15px;
@@ -992,7 +992,7 @@ input, select, textarea { font: inherit; color: inherit; }
   min-height: 32px;
   border-radius: var(--r-full);
   background: var(--md-sys-color-primary-container);
-  border: 1px solid rgba(111, 242, 179, 0.22);
+  border: 1px solid rgba(255, 143, 199, 0.22);
   transition: transform 0.15s var(--spring-fast);
 }
 .mini:active { transform: scale(0.92); }
@@ -1101,7 +1101,7 @@ input, select, textarea { font: inherit; color: inherit; }
   bottom: calc(10px + var(--safe-bot));
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  background: rgba(17, 28, 23, 0.82);
+  background: rgba(26, 16, 22, 0.82);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.11);
@@ -1157,7 +1157,7 @@ input, select, textarea { font: inherit; color: inherit; }
   place-items: center;
   box-shadow:
     0 10px 26px -4px rgba(0, 0, 0, 0.65),
-    0 0 24px rgba(111, 242, 179, 0.35),
+    0 0 24px rgba(255, 143, 199, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
   z-index: 21;
   transition: transform 0.22s var(--spring-fast), opacity 0.2s;
@@ -1169,7 +1169,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 6, 4, 0.72);
+  background: rgba(7, 4, 5, 0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: none;
@@ -1183,7 +1183,7 @@ input, select, textarea { font: inherit; color: inherit; }
   max-width: 440px;
   max-height: 90dvh;
   overflow-y: auto;
-  background: #131F19;
+  background: #1A1016;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-bottom: none;
   border-radius: 32px 32px 0 0;
@@ -1247,7 +1247,7 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 .field input:focus, .field select:focus {
   border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 3px rgba(111, 242, 179, 0.14);
+  box-shadow: 0 0 0 3px rgba(255, 143, 199, 0.14);
   outline: none;
   background: var(--md-sys-color-surface-container-highest);
 }
@@ -1268,7 +1268,7 @@ input, select, textarea { font: inherit; color: inherit; }
   justify-content: center;
   gap: 8px;
   transition: transform 0.16s var(--spring-fast), opacity 0.2s;
-  box-shadow: 0 6px 20px -4px rgba(111, 242, 179, 0.45);
+  box-shadow: 0 6px 20px -4px rgba(255, 143, 199, 0.45);
 }
 .btn:active { transform: scale(0.96); }
 .btn-danger {
@@ -1326,7 +1326,7 @@ input, select, textarea { font: inherit; color: inherit; }
   left: 50%;
   bottom: calc(96px + var(--safe-bot));
   transform: translate(-50%, 24px) scale(0.95);
-  background: rgba(30, 48, 39, 0.94);
+  background: rgba(44, 27, 37, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -1464,8 +1464,8 @@ input, select, textarea { font: inherit; color: inherit; }
         <svg class="ribbon-chart" id="ribbon-svg" viewBox="0 0 400 96" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stop-color="#6FF2B3" stop-opacity="0.58"/>
-              <stop offset="100%" stop-color="#6FF2B3" stop-opacity="0"/>
+              <stop offset="0%"   stop-color="#FF8FC7" stop-opacity="0.58"/>
+              <stop offset="100%" stop-color="#FF8FC7" stop-opacity="0"/>
             </linearGradient>
           </defs>
         </svg>
@@ -3814,7 +3814,7 @@ if ('serviceWorker' in navigator) {
 
   function confetti() {
     const box = document.createElement('div'); box.className = 'confetti';
-    const cols = ['#6FF2B3','#FFD54F','#4FC3F7','#FF8A65','#CE93D8','#81C784'];
+    const cols = ['#FF8FC7','#FFD54F','#B9A6FF','#FF8A65','#CE93D8','#FFB3DA'];
     for (let i = 0; i < 36; i++) {
       const b = document.createElement('i');
       b.style.left = (20 + Math.random() * 60) + '%';

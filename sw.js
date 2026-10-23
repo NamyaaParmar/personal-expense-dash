@@ -5,7 +5,7 @@
 // screen always come from the network, never from a stale cache.
 
 // Bump this whenever the shell caching logic changes so old caches are purged.
-const CACHE_NAME = 'ledger-shell-v2';
+const CACHE_NAME = 'ledger-shell-v3';
 const SHELL_URLS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
